@@ -169,7 +169,7 @@ export function SettingsScreen() {
                 className="w-full rounded-2xl border border-amber-200/15 bg-white/5 px-4 py-3 text-base text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-amber-300/50 focus:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={!currency}
               />
-              {minimumDeposit && (
+              {minimumDeposit != null && currency && (
                 <p className="mt-2 text-xs text-slate-400">
                   Minimum deposit: {formatAmount(minimumDeposit, currency)} {currency}
                 </p>
