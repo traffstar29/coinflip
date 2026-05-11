@@ -36,8 +36,7 @@ export function RulesScreen() {
             <li>2. Continue to settings, then start the predictor to get HEADS or TAILS.</li>
             <li>3. Flip the coin in the game and watch where it lands.</li>
             <li>4. On the result screen, tap the side that actually landed.</li>
-            <li>5. The more rounds you confirm, the smarter the predictor gets.</li>
-            <li>6. Accuracy starts at 50% and improves as synchronization fills up.</li>
+            <li>5. The more rounds you complete and confirm, the better the bot syncs, making the predictor smarter and more accurate.</li>
           </ol>
         </GlassCard>
       </div>
