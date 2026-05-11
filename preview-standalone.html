@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>PROFIT MACHINE - CoinFlip Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html {
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        background: #07101f;
+        background-image:
+          radial-gradient(ellipse 120% 80% at 50% -20%, rgba(59, 130, 246, 0.32), transparent 55%),
+          radial-gradient(ellipse 80% 50% at 100% 50%, rgba(234, 179, 8, 0.14), transparent 45%),
+          radial-gradient(ellipse 60% 40% at 0% 80%, rgba(30, 64, 175, 0.18), transparent 40%);
+        background-attachment: fixed;
+      }
+      .glass {
+        position: relative;
+        border: 1px solid rgba(253, 224, 71, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(16px);
+        border-radius: 1rem;
+      }
+      .glow {
+        box-shadow: 0 0 22px rgba(234, 179, 8, 0.3);
+      }
+      .loader-stage {
+        position: relative;
+        width: 11rem;
+        height: 11rem;
+      }
+      .loader-track,
+      .loader-spin {
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        border: 10px solid rgba(255, 255, 255, 0.1);
+      }
+      .loader-spin {
+        border-color: transparent;
+        border-top-color: #fcd34d;
+        border-right-color: rgba(245, 158, 11, 0.6);
+        animation: loaderSpin 1.1s linear infinite;
+        filter: drop-shadow(0 0 24px rgba(234, 179, 8, 0.55));
+      }
+      .loading-bg {
+        background-size: cover;
+        background-position: center;
+      }
+      .btn-primary {
+        background-image: linear-gradient(90deg, #f59e0b, #fbbf24, #fde047);
+        color: #0f172a;
+      }
+      .btn-primary:hover {
+        filter: brightness(1.08);
+      }
+      .choice-active {
+        border-color: rgba(252, 211, 77, 0.7);
+        background: rgba(252, 211, 77, 0.25);
+        color: #fffbeb;
+        box-shadow: 0 0 22px rgba(234, 179, 8, 0.3);
+      }
+      @keyframes loaderSpin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .anim-fade {
+        animation: fadeIn 0.4s ease-out forwards;
+      }
+    </style>
+  </head>
+  <body class="min-h-[100dvh] text-slate-100 antialiased">
+    <main class="mx-auto w-full max-w-lg px-4 pb-28 pt-4">
+      <section id="screen-rules" class="anim-fade pb-36">
+        <header class="mb-6 flex flex-col items-center text-center">
+          <h1 class="bg-gradient-to-r from-amber-200 via-white to-amber-300 bg-clip-text text-3xl font-black tracking-tight text-transparent">
+            PROFIT MACHINE
+          </h1>
+          <p class="mt-2 text-xs uppercase tracking-[0.26em] text-amber-200/70">CoinFlip Predictor</p>
+        </header>
+
+        <div class="mb-6 flex justify-center">
+          <img
+            src="./100hp.png"
+            alt="CoinFlip promo"
+            class="h-auto w-full max-w-[160px] object-contain drop-shadow-[0_0_28px_rgba(234,179,8,0.35)]"
+          />
+        </div>
+
+        <div class="space-y-4">
+          <div class="glass p-6">
+            <p class="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-amber-200/70">How to use</p>
+            <ol class="space-y-4 text-[15px] leading-relaxed">
+              <li>1. Open the Coinflip game in your casino.</li>
+              <li>2. Continue to settings, then start the predictor to get HEADS or TAILS.</li>
+              <li>3. Flip the coin in the game and watch where it lands.</li>
+              <li>4. On the result screen, tap the side that actually landed.</li>
+              <li>5. The more rounds you confirm, the smarter the predictor gets.</li>
+              <li>6. Accuracy starts at 50% and improves as synchronization fills up.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="fixed bottom-0 left-0 right-0 px-4 pb-[max(env(safe-area-inset-bottom),16px)] pt-2">
+          <div class="mx-auto w-full max-w-lg">
+            <button
+              id="btn-rules-continue"
+              class="btn-primary w-full rounded-2xl py-4 text-sm font-black uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(234,179,8,0.45)] transition active:scale-[0.98]"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-settings" hidden class="anim-fade pb-44">
+        <header class="mb-6 text-center">
+          <h2 class="bg-gradient-to-r from-amber-200 to-yellow-300 bg-clip-text text-2xl font-black tracking-tight text-transparent">
+            PROFIT MACHINE
+          </h2>
+          <p class="mt-2 text-xs uppercase tracking-[0.26em] text-amber-200/70">Session settings</p>
+        </header>
+
+        <div class="mx-auto flex max-w-lg flex-col gap-4">
+          <div class="glass p-6">
+            <p class="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-amber-200/70">Before you start</p>
+
+            <div class="space-y-5">
+              <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">Your ID</label>
+                <input
+                  id="input-user-id"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="Enter your numeric ID"
+                  class="w-full rounded-2xl border border-amber-200/15 bg-white/5 px-4 py-3 text-base text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-amber-300/50 focus:bg-white/10"
+                />
+                <p id="error-user-id" class="mt-2 hidden text-sm text-rose-300"></p>
+              </div>
+
+              <div>
+                <p class="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">Currency</p>
+                <select
+                  id="select-currency"
+                  class="w-full rounded-2xl border border-amber-200/15 bg-white/5 px-4 py-3 text-base font-semibold text-slate-100 outline-none transition focus:border-amber-300/50 focus:bg-white/10"
+                >
+                  <option value="" class="bg-slate-900 text-slate-300">Select your currency</option>
+                  <option value="USD" class="bg-slate-900 text-slate-100">USD</option>
+                  <option value="NGN" class="bg-slate-900 text-slate-100">NGN</option>
+                  <option value="XAF" class="bg-slate-900 text-slate-100">XAF</option>
+                  <option value="XOF" class="bg-slate-900 text-slate-100">XOF</option>
+                </select>
+                <p id="error-currency" class="mt-2 hidden text-sm text-rose-300"></p>
+              </div>
+
+              <div>
+                <label class="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">Deposit amount</label>
+                <input
+                  id="input-deposit"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="Select a currency first"
+                  disabled
+                  class="w-full rounded-2xl border border-amber-200/15 bg-white/5 px-4 py-3 text-base text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-amber-300/50 focus:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <p id="deposit-hint" class="mt-2 hidden text-xs text-slate-400"></p>
+                <p id="error-deposit" class="mt-2 hidden text-sm text-rose-300"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fixed bottom-0 left-0 right-0 px-4 pb-[max(env(safe-area-inset-bottom),16px)] pt-2">
+          <div class="mx-auto flex w-full max-w-lg flex-col gap-3">
+            <button
+              id="btn-settings-start"
+              class="btn-primary w-full rounded-2xl py-4 text-sm font-black uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(234,179,8,0.45)] transition active:scale-[0.98]"
+            >
+              Start Predictor
+            </button>
+            <button
+              id="btn-settings-back"
+              class="w-full rounded-2xl border border-white/10 bg-white/5 py-4 text-sm font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/10"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-loading" hidden class="anim-fade">
+        <div class="relative flex min-h-[80vh] flex-col items-center justify-center pt-6">
+          <div
+            class="pointer-events-none absolute inset-x-0 top-0 -z-10 mx-auto h-[60vh] max-w-lg rounded-3xl bg-cover bg-center opacity-60"
+            style="background-image: linear-gradient(180deg, rgba(7,16,31,0) 35%, rgba(7,16,31,0.85) 100%), url('./loading.png')"
+          ></div>
+
+          <header class="mb-8 text-center">
+            <h2 class="bg-gradient-to-r from-amber-200 to-yellow-300 bg-clip-text text-2xl font-black tracking-tight text-transparent">
+              PROFIT MACHINE
+            </h2>
+            <p class="mt-1 text-xs uppercase tracking-[0.3em] text-amber-200/70">Generating signal</p>
+          </header>
+
+          <div class="loader-stage">
+            <div class="loader-track"></div>
+            <div class="loader-spin"></div>
+          </div>
+
+          <p class="mt-10 text-xs font-bold uppercase tracking-[0.35em] text-amber-300/90">Processing</p>
+
+          <div class="mt-6 w-full max-w-md text-center">
+            <p class="text-sm font-medium text-slate-200">Predicting the next flip...</p>
+            <p id="sub-status" class="mt-2 min-h-[1.25rem] text-xs text-slate-400 transition-all"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-result" hidden class="anim-fade pt-3 pb-24">
+        <header class="mb-4 text-center">
+          <h2 class="bg-gradient-to-r from-amber-200 to-yellow-300 bg-clip-text text-2xl font-black tracking-tight text-transparent">
+            PROFIT MACHINE
+          </h2>
+          <p class="mt-1 text-xs uppercase tracking-[0.3em] text-amber-200/70">Prediction ready</p>
+        </header>
+
+        <div class="mx-auto flex max-w-lg flex-col items-center gap-4">
+          <div class="rounded-3xl border border-amber-300/40 bg-amber-300/10 px-8 py-4 shadow-[0_0_45px_rgba(234,179,8,0.3)]">
+            <img id="result-coin" src="./heads.png" alt="" class="mx-auto h-28 w-28 object-contain drop-shadow-[0_0_32px_rgba(234,179,8,0.55)] sm:h-32 sm:w-32" />
+            <div id="result-side" class="mt-2 text-center text-3xl font-black tracking-[0.26em] text-amber-200 sm:text-4xl">HEADS</div>
+          </div>
+
+          <div class="glass w-full p-4">
+            <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-amber-200/80">
+              <span>Amount to enter</span>
+              <span id="entry-amount">20 NGN</span>
+            </div>
+          </div>
+
+          <div class="glass glow w-full p-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200">What was the actual result?</p>
+            <div class="mt-3 grid grid-cols-2 gap-3">
+              <button
+                id="btn-mark-heads"
+                class="choice-btn flex items-center justify-center gap-2 rounded-2xl border border-amber-300/40 bg-amber-300/10 py-3 text-sm font-bold uppercase tracking-wider text-amber-100 transition hover:bg-amber-300/20"
+              >
+                <img src="./heads.png" alt="" class="h-7 w-7 object-contain" />
+                Heads
+              </button>
+              <button
+                id="btn-mark-tails"
+                class="choice-btn flex items-center justify-center gap-2 rounded-2xl border border-amber-300/40 bg-amber-300/10 py-3 text-sm font-bold uppercase tracking-wider text-amber-100 transition hover:bg-amber-300/20"
+              >
+                <img src="./tails.png" alt="" class="h-7 w-7 object-contain" />
+                Tails
+              </button>
+            </div>
+            <p id="mark-confirm" class="mt-2 hidden text-xs text-emerald-300">
+              Result saved. You can still change it before the next signal.
+            </p>
+          </div>
+
+          <div class="glass w-full p-4">
+            <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-amber-200/80">
+              <span>Synchronization</span>
+              <span id="sync-pct">0%</span>
+            </div>
+            <div class="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+              <div id="sync-bar" class="h-full w-0 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 transition-all duration-500"></div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200/80">
+              <span>Prediction accuracy</span>
+              <span id="acc-pct">50%</span>
+            </div>
+            <div class="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+              <div id="acc-bar" class="h-full w-0 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-200 transition-all duration-500"></div>
+            </div>
+            <p class="mt-2 text-xs text-slate-400">Accuracy improves the more results you mark.</p>
+          </div>
+
+          <div class="flex w-full flex-col gap-3">
+            <button
+              id="btn-next"
+              disabled
+              class="w-full rounded-2xl border border-amber-300/40 bg-amber-300/15 py-4 text-sm font-bold uppercase tracking-wider text-amber-100 transition hover:bg-amber-300/25 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next Prediction
+            </button>
+            <button
+              id="btn-back"
+              class="w-full rounded-2xl border border-white/10 bg-white/5 py-4 text-sm font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/10"
+            >
+              Back to Rules
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-cooldown" hidden class="anim-fade">
+        <div class="flex min-h-[78vh] flex-col justify-center pb-20 pt-4">
+          <header class="mb-5 text-center">
+            <h2 class="bg-gradient-to-r from-amber-200 to-yellow-300 bg-clip-text text-2xl font-black tracking-tight text-transparent">
+              PROFIT MACHINE
+            </h2>
+            <p class="mt-2 text-xs uppercase tracking-[0.28em] text-amber-200/70">Session cooldown</p>
+          </header>
+
+          <div class="mx-auto flex w-full max-w-lg flex-col gap-4">
+            <div class="glass glow p-6 text-center">
+              <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-100">Session limit reached</p>
+              <p class="mt-4 text-sm leading-relaxed text-slate-200">
+                You have reached the 50-game limit for this session. Please come back in 12 hours to unlock the next signal.
+              </p>
+
+              <div class="mt-6 rounded-3xl border border-amber-300/30 bg-amber-300/10 px-6 py-5">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-200/70">Time remaining</p>
+                <div id="cooldown-timer" class="mt-2 text-4xl font-black tracking-[0.14em] text-amber-100">12:00:00</div>
+              </div>
+
+              <p id="cooldown-hint" class="mt-4 text-xs text-slate-400">
+                The predictor will unlock automatically when the timer ends.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <button
+                id="btn-cooldown-primary"
+                disabled
+                class="btn-primary w-full rounded-2xl py-4 text-sm font-black uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(234,179,8,0.45)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Predictor locked
+              </button>
+              <button
+                id="btn-cooldown-back"
+                class="w-full rounded-2xl border border-white/10 bg-white/5 py-4 text-sm font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/10"
+              >
+                Back to Rules
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        var STORAGE_KEY = "profit-machine-preview-state";
+        var SESSION_GAME_LIMIT = 50;
+        var SESSION_COOLDOWN_MS = 12 * 60 * 60 * 1000;
+
+        var statusMessages = [
+          "Analyzing flip patterns...",
+          "Calibrating coin physics...",
+          "Reading momentum data...",
+          "Locking in the signal...",
+        ];
+
+        function pickStatusPair() {
+          var copy = statusMessages.slice();
+          for (var i = copy.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = copy[i];
+            copy[i] = copy[j];
+            copy[j] = t;
+          }
+          var count = 2 + Math.floor(Math.random() * 2);
+          return copy.slice(0, count);
+        }
+
+        function getMinimumDeposit(currency) {
+          if (currency === "NGN") return 3000;
+          if (currency === "USD") return 2;
+          return 1300;
+        }
+
+        function getMinimumEntryAmount(currency) {
+          if (currency === "NGN") return 150;
+          if (currency === "USD") return 0.1;
+          return 65;
+        }
+
+        function getBaseEntryAmount(depositAmount, currency) {
+          return (depositAmount / getMinimumDeposit(currency)) * getMinimumEntryAmount(currency);
+        }
+
+        function formatAmount(amount, currency) {
+          return amount.toLocaleString("en-US", {
+            minimumFractionDigits: currency === "USD" ? 2 : 0,
+            maximumFractionDigits: currency === "USD" ? 2 : 0
+          });
+        }
+
+        function nextSyncPercent(current, roundsDone, targetRounds) {
+          if (roundsDone >= targetRounds) return 100;
+          var remainingRounds = targetRounds - (roundsDone - 1);
+          if (remainingRounds <= 1) return 100;
+          var remainingPercent = 100 - current;
+          var avgStep = remainingPercent / remainingRounds;
+          var jitter = 0.45 + Math.random() * 1.1;
+          var step = Math.min(avgStep * jitter, remainingPercent - 1);
+          return Math.min(100, current + Math.max(step, 0.5));
+        }
+
+        function computeAccuracy(roundsDone, targetRounds, threshold) {
+          if (roundsDone <= threshold) return 50;
+          var span = Math.max(1, targetRounds - threshold);
+          var progressed = Math.min(roundsDone - threshold, span);
+          return Math.min(58, Math.round(50 + (progressed / span) * 8));
+        }
+
+        function getRemainingCooldownMs(cooldownEndsAt) {
+          if (cooldownEndsAt == null) return 0;
+          return Math.max(0, cooldownEndsAt - Date.now());
+        }
+
+        function isCooldownActive(cooldownEndsAt) {
+          return getRemainingCooldownMs(cooldownEndsAt) > 0;
+        }
+
+        function formatCountdown(ms) {
+          var totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+          var hours = Math.floor(totalSeconds / 3600);
+          var minutes = Math.floor((totalSeconds % 3600) / 60);
+          var seconds = totalSeconds % 60;
+          return [hours, minutes, seconds]
+            .map(function (value) {
+              return String(value).padStart(2, "0");
+            })
+            .join(":");
+        }
+
+        function createInitialState() {
+          return {
+            screen: "rules",
+            signal: null,
+            actualResult: null,
+            resultMarked: false,
+            roundsDone: 0,
+            targetRounds: 16 + Math.floor(Math.random() * 5),
+            accuracyThreshold: 4 + Math.floor(Math.random() * 2),
+            syncPercent: 0,
+            accuracyPercent: 50,
+            sessionGamesPlayed: 0,
+            cooldownEndsAt: null,
+            userId: "",
+            currency: null,
+            depositAmount: null,
+            currentEntryAmount: 0,
+          };
+        }
+
+        function loadState() {
+          try {
+            var raw = window.localStorage.getItem(STORAGE_KEY);
+            if (!raw) return createInitialState();
+            return Object.assign(createInitialState(), JSON.parse(raw));
+          } catch (error) {
+            return createInitialState();
+          }
+        }
+
+        var state = loadState();
+        var loadingTimer = null;
+        var statusTimer = null;
+        var cooldownTimer = null;
+
+        var screens = {
+          rules: document.getElementById("screen-rules"),
+          settings: document.getElementById("screen-settings"),
+          loading: document.getElementById("screen-loading"),
+          result: document.getElementById("screen-result"),
+          cooldown: document.getElementById("screen-cooldown"),
+        };
+
+        var inputUserId = document.getElementById("input-user-id");
+        var selectCurrency = document.getElementById("select-currency");
+        var inputDeposit = document.getElementById("input-deposit");
+        var depositHint = document.getElementById("deposit-hint");
+        var errorUserId = document.getElementById("error-user-id");
+        var errorCurrency = document.getElementById("error-currency");
+        var errorDeposit = document.getElementById("error-deposit");
+        var subStatus = document.getElementById("sub-status");
+        var resultCoin = document.getElementById("result-coin");
+        var resultSide = document.getElementById("result-side");
+        var entryAmount = document.getElementById("entry-amount");
+        var syncPct = document.getElementById("sync-pct");
+        var syncBar = document.getElementById("sync-bar");
+        var accPct = document.getElementById("acc-pct");
+        var accBar = document.getElementById("acc-bar");
+        var markConfirm = document.getElementById("mark-confirm");
+        var btnMarkHeads = document.getElementById("btn-mark-heads");
+        var btnMarkTails = document.getElementById("btn-mark-tails");
+        var btnNext = document.getElementById("btn-next");
+        var cooldownTimerEl = document.getElementById("cooldown-timer");
+        var cooldownHintEl = document.getElementById("cooldown-hint");
+        var btnCooldownPrimary = document.getElementById("btn-cooldown-primary");
+        var btnCooldownBack = document.getElementById("btn-cooldown-back");
+
+        function saveState() {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function stopLoadingTimers() {
+          if (loadingTimer) clearTimeout(loadingTimer);
+          if (statusTimer) clearTimeout(statusTimer);
+          loadingTimer = null;
+          statusTimer = null;
+        }
+
+        function stopCooldownTimer() {
+          if (cooldownTimer) clearInterval(cooldownTimer);
+          cooldownTimer = null;
+        }
+
+        function syncCooldownState() {
+          if (state.cooldownEndsAt != null && !isCooldownActive(state.cooldownEndsAt)) {
+            state.cooldownEndsAt = null;
+            state.sessionGamesPlayed = 0;
+            saveState();
+          }
+        }
+
+        function show(name) {
+          state.screen = name;
+          Object.keys(screens).forEach(function (key) {
+            screens[key].hidden = key !== name;
+          });
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          saveState();
+        }
+
+        function clearErrors() {
+          [errorUserId, errorCurrency, errorDeposit].forEach(function (node) {
+            node.textContent = "";
+            node.classList.add("hidden");
+          });
+        }
+
+        function showError(node, message) {
+          node.textContent = message;
+          node.classList.remove("hidden");
+        }
+
+        function syncDepositUi() {
+          if (state.currency) {
+            inputDeposit.disabled = false;
+            inputDeposit.placeholder = "Enter your deposit in " + state.currency;
+            depositHint.textContent = "Minimum deposit: " + formatAmount(getMinimumDeposit(state.currency), state.currency) + " " + state.currency;
+            depositHint.classList.remove("hidden");
+          } else {
+            inputDeposit.disabled = true;
+            inputDeposit.placeholder = "Select a currency first";
+            depositHint.classList.add("hidden");
+          }
+        }
+
+        function validateSettings() {
+          clearErrors();
+          var valid = true;
+
+          if (!/^\d{6,10}$/.test(state.userId)) {
+            showError(errorUserId, "Invalid ID");
+            valid = false;
+          }
+
+          if (!state.currency) {
+            showError(errorCurrency, "Select your currency.");
+            valid = false;
+          }
+
+          if (!state.currency && state.depositAmount != null) {
+            showError(errorDeposit, "Select a currency before entering your deposit.");
+            valid = false;
+          } else if (state.currency && !/^\d+$/.test(String(state.depositAmount == null ? "" : state.depositAmount))) {
+            showError(errorDeposit, "Enter your deposit as a whole number.");
+            valid = false;
+          } else if (state.currency && state.depositAmount < getMinimumDeposit(state.currency)) {
+            showError(errorDeposit, "Please make a deposit of at least " + formatAmount(getMinimumDeposit(state.currency), state.currency) + " " + state.currency + ".");
+            valid = false;
+          }
+
+          return valid;
+        }
+
+        function updateBars() {
+          var syncRounded = Math.round(state.syncPercent);
+          syncPct.textContent = syncRounded + "%";
+          syncBar.style.width = syncRounded + "%";
+
+          var accuracy = Math.round(state.accuracyPercent);
+          accPct.textContent = accuracy + "%";
+          var fill = Math.max(0, Math.min(100, ((state.accuracyPercent - 50) / 8) * 100));
+          accBar.style.width = fill + "%";
+        }
+
+        function updateEntryAmount() {
+          if (!state.currency) return;
+          entryAmount.textContent = formatAmount(state.currentEntryAmount, state.currency) + " " + state.currency;
+        }
+
+        function updateChoiceButtons() {
+          btnMarkHeads.classList.toggle("choice-active", state.actualResult === "HEADS");
+          btnMarkTails.classList.toggle("choice-active", state.actualResult === "TAILS");
+          btnNext.disabled = !state.actualResult;
+          markConfirm.classList.toggle("hidden", !state.actualResult);
+        }
+
+        function renderResult() {
+          if (!state.signal || !state.currency) return;
+          resultCoin.src = state.signal.side === "HEADS" ? "./heads.png" : "./tails.png";
+          resultCoin.alt = state.signal.side;
+          resultSide.textContent = state.signal.side;
+          updateEntryAmount();
+          updateBars();
+          updateChoiceButtons();
+        }
+
+        function renderCooldown() {
+          syncCooldownState();
+          var remainingMs = getRemainingCooldownMs(state.cooldownEndsAt);
+          var locked = remainingMs > 0;
+          cooldownTimerEl.textContent = formatCountdown(remainingMs);
+          cooldownHintEl.textContent = locked
+            ? "The predictor will unlock automatically when the timer ends."
+            : "The cooldown has ended. You can use the predictor again.";
+          btnCooldownPrimary.disabled = locked;
+          btnCooldownPrimary.textContent = locked ? "Predictor locked" : "Get Next Signal";
+          btnCooldownBack.textContent = state.currency ? "Back to Rules" : "Back";
+        }
+
+        function openCooldownScreen() {
+          renderCooldown();
+          show("cooldown");
+        }
+
+        function startCooldownTicker() {
+          stopCooldownTimer();
+          cooldownTimer = setInterval(function () {
+            if (state.screen !== "cooldown") return;
+            renderCooldown();
+          }, 1000);
+        }
+
+        function startLoading() {
+          syncCooldownState();
+          if (isCooldownActive(state.cooldownEndsAt)) {
+            openCooldownScreen();
+            return;
+          }
+
+          stopLoadingTimers();
+          state.actualResult = null;
+          state.resultMarked = false;
+          state.signal = null;
+          show("loading");
+
+          var messages = pickStatusPair();
+          var index = 0;
+          subStatus.textContent = messages[0];
+
+          (function tick() {
+            statusTimer = setTimeout(function () {
+              index = (index + 1) % messages.length;
+              subStatus.textContent = messages[index];
+              tick();
+            }, 900 + Math.random() * 700);
+          })();
+
+          loadingTimer = setTimeout(function () {
+            stopLoadingTimers();
+            state.signal = { side: Math.random() < 0.5 ? "HEADS" : "TAILS" };
+            renderResult();
+            show("result");
+          }, 3000 + Math.random() * 1000);
+        }
+
+        function handleActualResult(side) {
+          if (!state.signal || !state.currency) return;
+
+          if (!state.resultMarked) {
+            state.roundsDone = Math.min(state.roundsDone + 1, state.targetRounds);
+            state.syncPercent = nextSyncPercent(state.syncPercent, state.roundsDone, state.targetRounds);
+            state.accuracyPercent = computeAccuracy(
+              state.roundsDone,
+              state.targetRounds,
+              state.accuracyThreshold
+            );
+            state.sessionGamesPlayed = Math.min(state.sessionGamesPlayed + 1, SESSION_GAME_LIMIT);
+            state.resultMarked = true;
+          }
+
+          state.actualResult = side;
+
+          if (state.sessionGamesPlayed >= SESSION_GAME_LIMIT) {
+            state.cooldownEndsAt = Date.now() + SESSION_COOLDOWN_MS;
+            openCooldownScreen();
+            return;
+          }
+
+          updateBars();
+          updateChoiceButtons();
+          saveState();
+        }
+
+        function resetToRules() {
+          stopLoadingTimers();
+          syncCooldownState();
+          var activeCooldownEndsAt = isCooldownActive(state.cooldownEndsAt) ? state.cooldownEndsAt : null;
+          var activeSessionGames = isCooldownActive(state.cooldownEndsAt) ? state.sessionGamesPlayed : 0;
+          state = createInitialState();
+          state.cooldownEndsAt = activeCooldownEndsAt;
+          state.sessionGamesPlayed = activeSessionGames;
+          inputUserId.value = "";
+          selectCurrency.value = "";
+          inputDeposit.value = "";
+          clearErrors();
+          syncDepositUi();
+          updateBars();
+          updateChoiceButtons();
+          show("rules");
+        }
+
+        document.getElementById("btn-rules-continue").addEventListener("click", function () {
+          syncCooldownState();
+          if (isCooldownActive(state.cooldownEndsAt)) {
+            openCooldownScreen();
+            return;
+          }
+          show("settings");
+        });
+
+        document.getElementById("btn-settings-back").addEventListener("click", function () {
+          show("rules");
+        });
+
+        inputUserId.addEventListener("input", function () {
+          state.userId = inputUserId.value.trim();
+          errorUserId.classList.add("hidden");
+          saveState();
+        });
+
+        inputDeposit.addEventListener("input", function () {
+          var cleaned = inputDeposit.value.replace(/\D/g, "");
+          inputDeposit.value = cleaned;
+          state.depositAmount = cleaned ? Number(cleaned) : null;
+          errorDeposit.classList.add("hidden");
+          saveState();
+        });
+
+        selectCurrency.addEventListener("change", function () {
+          state.currency = selectCurrency.value || null;
+          syncDepositUi();
+          errorCurrency.classList.add("hidden");
+          errorDeposit.classList.add("hidden");
+          saveState();
+        });
+
+        document.getElementById("btn-settings-start").addEventListener("click", function () {
+          syncCooldownState();
+          if (isCooldownActive(state.cooldownEndsAt)) {
+            openCooldownScreen();
+            return;
+          }
+          if (!validateSettings()) return;
+
+          state.signal = null;
+          state.actualResult = null;
+          state.resultMarked = false;
+          state.roundsDone = 0;
+          state.targetRounds = 16 + Math.floor(Math.random() * 5);
+          state.accuracyThreshold = 4 + Math.floor(Math.random() * 2);
+          state.syncPercent = 0;
+          state.accuracyPercent = 50;
+          state.sessionGamesPlayed = 0;
+          state.cooldownEndsAt = null;
+          state.currentEntryAmount = getBaseEntryAmount(state.depositAmount, state.currency);
+          saveState();
+          startLoading();
+        });
+
+        btnMarkHeads.addEventListener("click", function () {
+          handleActualResult("HEADS");
+        });
+
+        btnMarkTails.addEventListener("click", function () {
+          handleActualResult("TAILS");
+        });
+
+        btnNext.addEventListener("click", function () {
+          if (!state.actualResult) return;
+          state.currentEntryAmount = getBaseEntryAmount(state.depositAmount, state.currency);
+          saveState();
+          startLoading();
+        });
+
+        document.getElementById("btn-back").addEventListener("click", function () {
+          resetToRules();
+        });
+
+        btnCooldownPrimary.addEventListener("click", function () {
+          syncCooldownState();
+          if (isCooldownActive(state.cooldownEndsAt)) return;
+          state.currentEntryAmount = getBaseEntryAmount(
+            state.depositAmount || getMinimumDeposit(state.currency || "NGN"),
+            state.currency || "NGN"
+          );
+          saveState();
+          startLoading();
+        });
+
+        btnCooldownBack.addEventListener("click", function () {
+          resetToRules();
+        });
+
+        inputUserId.value = state.userId || "";
+        selectCurrency.value = state.currency || "";
+        inputDeposit.value = state.depositAmount != null ? String(state.depositAmount) : "";
+
+        syncDepositUi();
+        updateBars();
+        updateChoiceButtons();
+        syncCooldownState();
+        startCooldownTicker();
+
+        if (state.screen === "settings") {
+          show("settings");
+        } else if (state.screen === "loading") {
+          startLoading();
+        } else if (state.screen === "result" && state.signal) {
+          renderResult();
+          show("result");
+        } else if (state.screen === "cooldown" || isCooldownActive(state.cooldownEndsAt)) {
+          openCooldownScreen();
+        } else {
+          show("rules");
+        }
+      })();
+    </script>
+  </body>
+</html>
