@@ -17,12 +17,18 @@ const LOADING_STATUS_MESSAGES = [
 
 export const CURRENCIES: readonly Currency[] = ["USD", "NGN", "XAF", "XOF"];
 
-/** Picks 2–3 unique status messages in random order. */
+/** Picks 2-3 unique status messages in random order. Uses a Vercel-safe shuffle. */
 export function pickLoadingStatusSequence(): string[] {
-  const pool = [...LOADING_STATUS_MESSAGES];
-  for (let i = pool.length - 1; i > 0; i--) {
+  const pool = Array.from(LOADING_STATUS_MESSAGES);
+  for (let i = pool.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
-    [pool[i]!, pool[j]!] = [pool[j]!, pool[i]!];
+    const current = pool[i];
+    const next = pool[j];
+    if (current === undefined || next === undefined) {
+      continue;
+    }
+    pool[i] = next;
+    pool[j] = current;
   }
   const count = 2 + Math.floor(Math.random() * 2);
   return pool.slice(0, count);
